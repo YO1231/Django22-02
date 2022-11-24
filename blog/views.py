@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.utils.text import slugify
 from .forms import CommentForm
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 # Create your views here.
 class PostUpdate(LoginRequiredMixin,UpdateView):
@@ -98,6 +99,21 @@ class PostList(ListView):
     # 템플릿 모델명_list.html : post_list.html **자동 생성
     # 파라미터 모델명_list : post_list
 
+class PostSearch(PostList): # ListView 상속, post_list, post_list.html
+    paginate_by = None #모든 포스트 보여주어야 하니까, 페이지네이션 중단
+
+    def get_queryset(self):
+        q = self.kwargs['q']
+        post_list = Post.objects.filter(
+            Q(title__contains=q) | Q(tags__name__contains=q)
+        ).distinct() #여러개 포스트가 포함되어 있으면 그중에 하나만
+        return post_list
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(PostSearch, self).get_context_data()
+        q = self.kwargs['q']
+        context['search_info'] = f'Search : {q} ({self.get_queryset().count()})'
+        return context
+
 class PostDetail(DetailView):
     model = Post #**데이터 한 개라 ordering 안 함
 
@@ -162,7 +178,6 @@ class CommentUpdate(LoginRequiredMixin, UpdateView):
             return super(CommentUpdate, self).dispatch(request, *args, **kwargs)
         else:
             raise PermissionDenied
-
 
 #def index(request):
 #    posts1 = Post.objects.all().order_by('-pk')

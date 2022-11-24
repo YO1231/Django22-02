@@ -5,11 +5,14 @@
             {% if user.is_superuser or user.is_staff %}
                 <a href="/blog/create_post/" role="button"
                    class="btn btn-info btn-sm float-right">
-                    <i class="fas fa-pen"></i> New Post
+                    <i class="fas fa-pen"> New Post</i>
                 </a>
             {% endif %}
         {% endif %}
           <h2>Blog
+              {% if search_info %}
+              <span class="badge badge-secondary">{{search_info}}</span>
+              {% endif %}
               {% if category %}
                 - <span class="badge badge-secondary">{{category}}</span>
               {% endif %}
